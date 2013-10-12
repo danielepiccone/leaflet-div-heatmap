@@ -25,7 +25,7 @@ L.HeatmapLayer = L.FeatureGroup.extend({
     },
 
     _parseColor: function (color) {
-        m = color.match(/^#([0-9a-f]{6})$/i)[1];
+        m = color.match(/^#([0-9a-f]{6})$/i);
         if(m) {
             return (parseInt(m.substr(0,2),16) + ',' + parseInt(m.substr(2,2),16)+ ',' + parseInt(m.substr(4,2),16));
         }else{
@@ -37,13 +37,15 @@ L.HeatmapLayer = L.FeatureGroup.extend({
         if (!value || !lat || !lng) {
             throw new Error('Provide a latitude, longitude and a value');
         }
-        var value = value > 1 ? 1 : value;
+        
+        //value = value > 1 ? 1 : value;
         var size = this.options.radius * value;
+        //value = 1;
         L.marker([lat, lng], {
             icon: L.divIcon({
                 iconSize: [ size, size ],
                 className: 'leaflet-heatmap-blob',
-                html: '<div class="heatblob" data-value="'+value+'" style="width:100%;height:100%;background-image: radial-gradient(closest-side, rgba('+ this._parseColor(this.options.color) +', '+value+'), rgba('+ this._parseColor(this.options.color) +', 0) 100%)">'
+                html: '<div class="heatblob" data-value="'+value+'" style="width:100%;height:100%;border-radius:50%;background-image: radial-gradient(closest-side, rgba('+ this._parseColor(this.options.color) +', '+value+') 0%, rgba('+ this._parseColor(this.options.color) +', 0) 100%)">'
             }),
             clickable: false,
             keyboard: false,
@@ -56,6 +58,7 @@ L.HeatmapLayer = L.FeatureGroup.extend({
         this.clearLayers();
         var self = this;
         data.forEach(function(point){
+            point.value = point.value > 1 ? 1 : point.value;
             self._addBlob(point.lat,point.lon,point.value);
         });
     },
@@ -71,7 +74,7 @@ L.HeatmapLayer = L.FeatureGroup.extend({
             var value = Math.random();	// 0 - 1 (opacity)
             var lat = 90 * Math.random();
             var lng = 180 * Math.random();
-            this.addBlob(lat,lng,value);
+            this._addBlob(lat,lng,value);
         }
     },
 

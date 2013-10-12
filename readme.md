@@ -1,5 +1,8 @@
 # Leaflet Heatmap Layer
 
+Lightweight implementation of an heatmap layer for leaflet using CSS3 and divIcon
+
+
 ##Methods:
 
 ###.setData(data)

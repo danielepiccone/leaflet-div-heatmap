@@ -1,5 +1,5 @@
 {
-  "name": "leaflet-heatmap",
+  "name": "leaflet-div-heatmap",
   "version": "0.0.0",
   "description": "Lightweight heatmap plugin for Leaflet using CSS3 and divIcons",
   "directories": {
@@ -7,7 +7,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/dpiccone/leaflet-heatmap.git"
+    "url": "git://github.com/dpiccone/leaflet-div-heatmap.git"
   },
   "keywords": [
     "leaflet",
@@ -18,6 +18,6 @@
   "author": "Daniele Piccone",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/dpiccone/leaflet-heatmap/issues"
+    "url": "https://github.com/dpiccone/leaflet-div-heatmap/issues"
   }
 }

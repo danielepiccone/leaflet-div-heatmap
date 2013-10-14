@@ -1,18 +1,18 @@
-# Leaflet Heatmap Layer
+# Leaflet divHeatmap Layer
 
 Lightweight implementation of an heatmap layer for leaflet using CSS3 and divIcon
 
 ##Use
 
 ```
-var heatmapLayer = new L.HeatmapLayer();
+var divHeatmapLayer = new L.DivHeatmapLayer();
 ```
 
 ###Options
 
 ```
 {
-    clickable: true or false, // heatmapLayer.on('click',function() {...});
+    clickable: true or false, // divHeatmapLayer.on('click',function() {...});
     radius: 100,
     gradient: true or false, // Make solid blobs
     color: '255,0,0' or '#FF0000'

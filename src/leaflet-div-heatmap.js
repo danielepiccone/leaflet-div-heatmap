@@ -1,97 +1,220 @@
 /*
- *
- * Leaflet divHeatmap Layer
- * Lightweight heatmap implementation using divIcons and CSS3 radial gradients
- * 
- * */
+*
+* Leaflet divHeatmap Layer
+* Lightweight heatmap implementation using divIcons and CSS3 radial gradients
+* 
+* */
 
 
 L.DivHeatmapLayer = L.FeatureGroup.extend({
-    options: {
-        color: '#00ee44',
-        radius: 100,
-        gradient: true,
-        clickable: false
-    },
+  options: {
+    color: '#00ee44',
+    radius: 100,
+    gradient: true,
+    clickable: false
+  },
 
-    initialize: function(options){
-        L.Util.setOptions(this, options);
-        this._layers = {};
+  initialize: function(options){
+    L.Util.setOptions(this, options);
+    this._layers = {};
 
-        // Define CSS rule for making heatmap invisible to clicking
-        var style = document.createElement('style');
-        document.head.appendChild(style);
+    // Define CSS rule for making heatmap invisible to clicking
+    var style = document.createElement('style');
+    document.head.appendChild(style);
 
-        // Make the heatmap invisible to clicking 
-        //style.appendChild(document.createTextNode(''));
-        //var sheet = style.sheet;
-        //sheet.insertRule(".leaflet-heatmap-blob { pointer-events:none }", 0);
-    },
+    // Append CSS rules
+    //style.appendChild(document.createTextNode(''));
+    //var sheet = style.sheet;
+    //sheet.insertRule(".leaflet-heatmap-blob { transition: width 1s, height 1s; }", 0);
+  },
 
-    _parseColor: function (color) {
-        m = color.match(/^#([0-9a-f]{6})$/i);
-        if(m) {
-            return (parseInt(m[1].substr(0,2),16) + ',' + parseInt(m[1].substr(2,2),16)+ ',' + parseInt(m[1].substr(4,2),16));
-        }else{
-            return color;
+  _parseColor: function (color) {
+    m = color.match(/^#([0-9a-f]{6})$/i);
+    if(m) {
+      return (parseInt(m[1].substr(0,2),16) + ',' + parseInt(m[1].substr(2,2),16)+ ',' + parseInt(m[1].substr(4,2),16));
+    }else{
+      return color;
+    }
+  },
+
+  _addBlob: function(lat,lng,value,old_marker){
+    // Remove previous
+    if (typeof old_marker != 'undefined') {
+      this.removeLayer(old_marker);
+    }
+
+    if ( (!value && value != 0) || !lat || !lng) {
+      throw new Error('Provide a latitude, longitude and a value');
+    }
+
+    if (value > 1 || value < 0) {
+      throw new Error('Value should be beetween 0 and 1');
+    }
+
+    // Define the marker
+    var alpha_start = value,
+    alpha_end = !this.options.gradient ? value : 0,
+    opacity = value;
+
+    var gradient =  'radial-gradient(closest-side, rgba('+ this._parseColor(this.options.color) +', '+alpha_start+') 0%, rgba('+ this._parseColor(this.options.color) +', '+alpha_end+') 100%)';
+    var html = '<div class="heatblob" data-value="'+value+'" style="width:100%;height:100%;border-radius:50%;background-image:'+gradient+'">';
+    var size = this.options.radius * value;
+    var divicon = L.divIcon({
+      iconSize: [ size, size ],
+      className: 'leaflet-heatmap-blob',
+      html: html
+    });
+
+    var marker = L.marker([lat, lng], {
+      icon: divicon,
+      clickable: this.options.clickable,
+      keyboard: false,
+      opacity: opacity
+    }).addTo(this);
+
+    return marker;
+  },
+
+  _dataset: [],
+  _markerset: [],
+
+  setData: function(data) {
+    // Data object is three values [ {lat,lon,value}, {...}, ...]
+    this.clearData();
+    // this._dataset = data;
+    var self = this;
+    data.forEach(function(point){
+      point.value = point.value > 1 ? 1 : point.value;
+      var marker = self._addBlob(point.lat,point.lon,point.value);
+      self._markerset.push(marker);
+      self._dataset.push({
+        "lat": point.lat,
+        "lon": point.lon,
+        "value": point.value
+      });
+
+    });
+  },
+
+  getData: function() {
+    return this._dataset;     
+  },
+
+  clearData: function() {
+    this.clearLayers();
+    this._markerset = [];
+    this._dataset = [];
+  },
+
+
+  _animateBlob: function(lat,lng,start_value,end_value,marker,fadeIn,fadeOut) {
+    var self = this;
+    if (!marker) var marker;
+
+    var v = start_value;
+    var delay = 50; // millis
+    var step = start_value < end_value ? 0.1 : -0.1;
+
+    var seed = setInterval(function() {
+      self.removeLayer(marker);
+      v = v + step;
+      v < 0 ? v = 0 : v > 1 ? v = 1 : v = v;
+      marker = self._addBlob(lat,lng,v,marker);
+      if (v >= Math.max(start_value,end_value) || v <= Math.min(start_value,end_value)) {
+        window.clearInterval(seed);
+        if (v < Math.min(start_value,end_value)) {
+          if (fadeOut) fadeOut(marker,seed);
         }
-    },
-
-    _addBlob: function(lat,lng,value){
-        if (!value || !lat || !lng) {
-            throw new Error('Provide a latitude, longitude and a value');
+        if (v > Math.max(start_value,end_value)) {
+          if (fadeIn) fadeIn(marker,seed);
         }
+      };
+    },delay);
 
-        if (value > 1 || value < 0) {
-            throw new Error('Value should be beetween 0 and 1');
-        }
+  },
 
-        // Define the marker
-        var alpha_start = value,
-            alpha_end = !this.options.gradient ? value : 0,
-            opacity = value;
+  morphData: function(new_data) {
+    this.fadeOutData();
+    this.fadeInData(new_data);
+  },
 
-
-        var gradient =  'radial-gradient(closest-side, rgba('+ this._parseColor(this.options.color) +', '+alpha_start+') 0%, rgba('+ this._parseColor(this.options.color) +', '+alpha_end+') 100%)';
-        var html = '<div class="heatblob" data-value="'+value+'" style="width:100%;height:100%;border-radius:50%;background-image:'+gradient+'">';
-        var size = this.options.radius * value;
-        
-        L.marker([lat, lng], {
-            icon: L.divIcon({
-                iconSize: [ size, size ],
-                className: 'leaflet-heatmap-blob',
-                html: html
-            }),
-            clickable: this.options.clickable,
-            keyboard: false,
-            opacity: opacity
-        }).addTo(this);
-    },
-
-    setData: function(data) {
-        // Data object is three values [ {lat,lon,value}, {...}, ...]
-        this.clearLayers();
-        var self = this;
-        data.forEach(function(point){
-            point.value = point.value > 1 ? 1 : point.value;
-            self._addBlob(point.lat,point.lon,point.value);
+  fadeInData: function (data) {
+    var self = this;
+    data.forEach(function(point){
+      self._animateBlob(point.lat,point.lon,0,point.value,null,function fadeIn(marker) {
+        self._markerset.push(marker);
+        self._dataset.push({
+          "lat": point.lat,
+          "lon": point.lon,
+          "value": point.value
         });
-    },
+      });
+    })
+  },
 
-    /*
-    * Testing
-    */
+  fadeOutData: function() {
+    var self = this;
+    var qty = self._dataset.length;
+    for (var i =0; i < qty; i++) {
+      var point = self._dataset.pop();
+      var marker = self._markerset.pop();
+      self._animateBlob(point.lat,point.lon,point.value,0,marker,null,function fadeOut(marker) {
+        self.removeLayer(marker);
+      });
+    }
+  },
 
-    addTestPoints: function(number) {
-        var count = number || 100;
-        while (count-- > 0) {
-            var size = Math.round(Math.random() * 150);	// in pixels
-            var value = Math.random();	// 0 - 1 (opacity)
-            var lat = 90 * Math.random();
-            var lng = 180 * Math.random();
-            this._addBlob(lat,lng,value);
-        }
-    },
 
-});
+  /*
+  * Testing
+  */
+  testRandomData: function(number) {
+    var data = [];
+    var count = number || 100;
+    while (count-- > 0) {
+      var size = Math.round(Math.random() * 150);	// in pixels
+      var value = Math.random();	// 0 - 1 (opacity)
+      var lat = 90 * Math.random();
+      var lng = 180 * Math.random();
+      data.push({
+        "lat": lat,
+        "lon": lng,
+        "value": value
+      });
+    }
+    return data;
+  },
+
+  testAddPoints: function(number) {
+    var count = number || 100;
+    while (count-- > 0) {
+      var size = Math.round(Math.random() * 150);	// in pixels
+      var value = Math.random();	// 0 - 1 (opacity)
+      var lat = 90 * Math.random();
+      var lng = 180 * Math.random();
+      this._addBlob(lat,lng,value);
+    }
+  },
+
+  testAddData: function(number) {
+    this.clearData();
+    this.setData(this.testRandomData(number));
+  },
+
+  testAnimatePoints: function(number) {
+    this.clearData();
+    var self = this;
+    var data = this.testRandomData(number);
+    data.forEach(function(point) {
+      self._animateBlob(point.lat,point.lon,0,point.value);
+    });
+  },
+
+  testMorphData: function(number) {
+    this.clearData();
+    this.setData(this.testRandomData(number));
+    this.morphData(this.testRandomData(number));
+  },
+
+ });
 

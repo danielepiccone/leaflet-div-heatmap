@@ -81,7 +81,6 @@ L.DivHeatmapLayer = L.FeatureGroup.extend({
   setData: function(data) {
     // Data object is three values [ {lat,lon,value}, {...}, ...]
     this.clearData();
-    // this._dataset = data;
     var self = this;
     data.forEach(function(point){
       point.value = point.value > 1 ? 1 : point.value;
@@ -118,15 +117,17 @@ L.DivHeatmapLayer = L.FeatureGroup.extend({
     var seed = setInterval(function() {
       //if (!marker) self.removeLayer(marker);
       v = v + step;
+      // Gate values so that the blob is always correct during progression
       v < 0 ? v = 0 : v > 1 ? v = 1 : v = v;
       marker = self._addBlob(lat,lng,v,marker);
       if (v >= Math.max(start_value,end_value) || v <= Math.min(start_value,end_value)) {
+        //console.log(lat,lng,v,marker);
         window.clearInterval(seed);
-        if (v < Math.min(start_value,end_value)) {
-          if (fadeOut) fadeOut(marker,seed);
+        if (v <= Math.min(start_value,end_value)) {
+          if (fadeOut) fadeOut(marker);
         }
-        if (v > Math.max(start_value,end_value)) {
-          if (fadeIn) fadeIn(marker,seed);
+        if (v >= Math.max(start_value,end_value)) {
+          if (fadeIn) fadeIn(marker);
         }
       };
     },delay);
@@ -141,8 +142,9 @@ L.DivHeatmapLayer = L.FeatureGroup.extend({
   fadeInData: function (data) {
     var self = this;
     data.forEach(function(point){
+      point.value = point.value > 1 ? 1 : point.value;
       self._animateBlob(point.lat,point.lon,0,point.value,null,function fadeIn(marker) {
-        self._markerset.push(marker);
+                self._markerset.push(marker);
         self._dataset.push({
           "lat": point.lat,
           "lon": point.lon,

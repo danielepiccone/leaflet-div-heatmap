@@ -116,7 +116,7 @@ L.DivHeatmapLayer = L.FeatureGroup.extend({
     var step = start_value < end_value ? 0.1 : -0.1;
 
     var seed = setInterval(function() {
-      self.removeLayer(marker);
+      //if (!marker) self.removeLayer(marker);
       v = v + step;
       v < 0 ? v = 0 : v > 1 ? v = 1 : v = v;
       marker = self._addBlob(lat,lng,v,marker);

@@ -36,3 +36,25 @@ var data = [
 }
 ];
 ```
+
+###.getData()
+Returns the dataset in the heatmap.
+
+###.clearData()
+Clears all the data.
+
+###.morphData(data)
+Load a new dataset performing a fadeOut on the old data and a fadeIn on the new data.
+
+###.fadeInData(data)
+Loads an array of data points fading.
+
+###.fadeOutData()
+Removes the current data making it fade out.
+
+
+## To Do
+
+- Callbacks for animations
+- Support for CSS animations
+

@@ -43,7 +43,7 @@ L.DivHeatmapLayer = L.FeatureGroup.extend({
       this.removeLayer(old_marker);
     }
 
-    if ( (!value && value != 0) || !lat || !lng) {
+    if ( (!value && value != 0) || (!lat && lat != 0) || (!lng && lng != 0)) {
       throw new Error('Provide a latitude, longitude and a value');
     }
 

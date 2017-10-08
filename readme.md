@@ -2,13 +2,13 @@
 
 Lightweight implementation of an heatmap layer for leaflet using CSS3 and divIcon
 
-##Use
+## Use
 
 ```
 var divHeatmapLayer = new L.DivHeatmapLayer();
 ```
 
-###Options
+### Options
 
 ```
 {
@@ -19,9 +19,9 @@ var divHeatmapLayer = new L.DivHeatmapLayer();
 }
 ```
 
-##Methods:
+## Methods:
 
-###.setData(data)
+### .setData(data)
 Loads an array of data points:
 
 ```
@@ -37,19 +37,19 @@ var data = [
 ];
 ```
 
-###.getData()
+### .getData()
 Returns the dataset in the heatmap.
 
-###.clearData()
+### .clearData()
 Clears all the data.
 
-###.morphData(data)
+### .morphData(data)
 Load a new dataset performing a fadeOut on the old data and a fadeIn on the new data.
 
-###.fadeInData(data)
+### .fadeInData(data)
 Loads an array of data points fading.
 
-###.fadeOutData()
+### .fadeOutData()
 Removes the current data making it fade out.
 
 
